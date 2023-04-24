@@ -10,28 +10,35 @@ const ANY = "Any"
 
 // 分组路由
 type routerGroup struct {
-	handleMap       map[string]HandlerFunc //路由对应的函数
-	handleMapMethod map[string][]string    //方法对应路由
+	handleMap       map[string]map[string]HandlerFunc //路由对应的函数 map["name"]["get"] func
+	handleMapMethod map[string][]string               //方法对应路由
 	name            string
 }
 
-func (group *routerGroup) Add(name string, handleFunc HandlerFunc) {
-	group.handleMap[name] = handleFunc
-}
-func (group *routerGroup) Any(name string, handleFunc HandlerFunc) {
-	group.handleMap[name] = handleFunc
-	group.handleMapMethod[ANY] = append(group.handleMapMethod[ANY], name)
-}
-func (group *routerGroup) Get(name string, handleFunc HandlerFunc) {
-	group.handleMap[name] = handleFunc
-	group.handleMapMethod[http.MethodGet] = append(group.handleMapMethod[http.MethodGet], name)
-}
-func (group *routerGroup) Post(name string, handleFunc HandlerFunc) {
-	group.handleMap[name] = handleFunc
-	group.handleMapMethod[http.MethodPost] = append(group.handleMapMethod[http.MethodPost], name)
+func (group *routerGroup) handle(name string, method string, handleFunc HandlerFunc) {
+	_, ok := group.handleMap[name]
+	if !ok {
+		group.handleMap[name] = make(map[string]HandlerFunc)
+	}
+	_, ok = group.handleMap[name][method]
+	if ok {
+		panic("相同路由下不能有相同请求")
+	}
+	group.handleMap[name][method] = handleFunc
+	group.handleMapMethod[method] = append(group.handleMapMethod[method], name)
 }
 
-type HandlerFunc func(w http.ResponseWriter, r *http.Request)
+func (group *routerGroup) Any(name string, handleFunc HandlerFunc) {
+	group.handle(name, ANY, handleFunc)
+}
+func (group *routerGroup) Get(name string, handleFunc HandlerFunc) {
+	group.handle(name, http.MethodGet, handleFunc)
+}
+func (group *routerGroup) Post(name string, handleFunc HandlerFunc) {
+	group.handle(name, http.MethodPost, handleFunc)
+}
+
+type HandlerFunc func(ctx *Context)
 
 type router struct {
 	routerGroups []*routerGroup
@@ -39,7 +46,7 @@ type router struct {
 
 func (r *router) Group(name string) *routerGroup {
 	group := &routerGroup{
-		handleMap:       make(map[string]HandlerFunc),
+		handleMap:       make(map[string]map[string]HandlerFunc),
 		name:            name,
 		handleMapMethod: make(map[string][]string),
 	}
@@ -59,25 +66,21 @@ func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		///再遍历分组路由下的路由集合
 		for name, handlerFunc := range group.handleMap {
 			if request.RequestURI == ("/" + group.name + name) {
-				//支持任意请求
-				routes, ok := group.handleMapMethod[ANY]
-				if ok {
-					for _, routeName := range routes {
-						if routeName == name {
-							handlerFunc(writer, request)
-							return
-						}
-					}
+				c := &Context{
+					W: writer,
+					R: request,
 				}
-				// 再遍历分组下的方法集合
-				routes, ok = group.handleMapMethod[method]
+				//支持任意请求
+				handle, ok := handlerFunc[ANY]
 				if ok {
-					for _, routeName := range routes {
-						if routeName == name {
-							handlerFunc(writer, request)
-							return
-						}
-					}
+					handle(c)
+					return
+				}
+
+				handle, ok = handlerFunc[method]
+				if ok {
+					handle(c)
+					return
 				}
 				writer.WriteHeader(http.StatusMethodNotAllowed)
 				fmt.Fprintf(writer, "%s %s not allowed \n", request.RequestURI, method)

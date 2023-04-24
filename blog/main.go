@@ -3,20 +3,24 @@ package main
 import (
 	"fmt"
 	"gofaster"
-	"net/http"
 )
 
 func main() {
 	engine := gofaster.New()
 	g := engine.Group("hello")
-	g.Add("/hello", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "hello")
+	g.Any("/hello", func(ctx *gofaster.Context) {
+		fmt.Fprint(ctx.W, "any hello")
+
 	})
-	g.Get("/get", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "hello")
+	g.Get("/hello", func(ctx *gofaster.Context) {
+		fmt.Fprint(ctx.W, "get any hello")
+
 	})
-	g.Post("/post", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "hello")
+	g.Get("/get", func(ctx *gofaster.Context) {
+		fmt.Fprint(ctx.W, "get hello")
+	})
+	g.Post("/post", func(ctx *gofaster.Context) {
+		fmt.Fprint(ctx.W, "post hello")
 	})
 	engine.Run()
 }
