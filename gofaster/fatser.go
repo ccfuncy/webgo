@@ -13,6 +13,7 @@ type routerGroup struct {
 	handleMap       map[string]map[string]HandlerFunc //路由对应的函数 map["name"]["get"] func
 	handleMapMethod map[string][]string               //方法对应路由
 	name            string
+	treeNode        *treeNode //前缀树 动态路由 前缀树方式实现
 }
 
 func (group *routerGroup) handle(name string, method string, handleFunc HandlerFunc) {
@@ -26,6 +27,8 @@ func (group *routerGroup) handle(name string, method string, handleFunc HandlerF
 	}
 	group.handleMap[name][method] = handleFunc
 	group.handleMapMethod[method] = append(group.handleMapMethod[method], name)
+	//前面是静态路由的请求方式 ，下面是动态路由的方式
+	group.treeNode.Put(name)
 }
 
 func (group *routerGroup) Any(name string, handleFunc HandlerFunc) {
@@ -49,6 +52,10 @@ func (r *router) Group(name string) *routerGroup {
 		handleMap:       make(map[string]map[string]HandlerFunc),
 		name:            name,
 		handleMapMethod: make(map[string][]string),
+		treeNode: &treeNode{
+			name:      "/",
+			childrens: make([]*treeNode, 0),
+		},
 	}
 	r.routerGroups = append(r.routerGroups, group)
 	return group
@@ -64,29 +71,28 @@ func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	//先遍历分组路由
 	for _, group := range e.routerGroups {
 		///再遍历分组路由下的路由集合
-		for name, handlerFunc := range group.handleMap {
-			if request.RequestURI == ("/" + group.name + name) {
-				c := &Context{
-					W: writer,
-					R: request,
-				}
-				//支持任意请求
-				handle, ok := handlerFunc[ANY]
-				if ok {
-					handle(c)
-					return
-				}
-
-				handle, ok = handlerFunc[method]
-				if ok {
-					handle(c)
-					return
-				}
-				writer.WriteHeader(http.StatusMethodNotAllowed)
-				fmt.Fprintf(writer, "%s %s not allowed \n", request.RequestURI, method)
+		routerName := SubStringLast(request.RequestURI, "/"+group.name)
+		node := group.treeNode.Get(routerName)
+		if node != nil {
+			c := &Context{
+				W: writer,
+				R: request,
+			}
+			//支持任意请求
+			handle, ok := group.handleMap[node.routerName][ANY]
+			if ok {
+				handle(c)
 				return
 			}
 
+			handle, ok = group.handleMap[node.routerName][method]
+			if ok {
+				handle(c)
+				return
+			}
+			writer.WriteHeader(http.StatusMethodNotAllowed)
+			fmt.Fprintf(writer, "%s %s not allowed \n", request.RequestURI, method)
+			return
 		}
 	}
 	writer.WriteHeader(http.StatusNotFound)

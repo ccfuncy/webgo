@@ -22,5 +22,11 @@ func main() {
 	g.Post("/post", func(ctx *gofaster.Context) {
 		fmt.Fprint(ctx.W, "post hello")
 	})
+	//g.Get("/use/:id", func(ctx *gofaster.Context) {
+	//	fmt.Fprint(ctx.W, "/use/:id get hello")
+	//})
+	g.Get("/use/*/get:id", func(ctx *gofaster.Context) {
+		fmt.Fprint(ctx.W, "/use/*/get:id get hello")
+	})
 	engine.Run()
 }
