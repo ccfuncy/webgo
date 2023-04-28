@@ -16,7 +16,7 @@ type routerGroup struct {
 	treeNode        *treeNode //前缀树 动态路由 前缀树方式实现
 }
 
-func (group *routerGroup) handle(name string, method string, handleFunc HandlerFunc) {
+func (group *routerGroup) handle(name string, method string, handlerFunc HandlerFunc) {
 	_, ok := group.handleMap[name]
 	if !ok {
 		group.handleMap[name] = make(map[string]HandlerFunc)
@@ -25,20 +25,29 @@ func (group *routerGroup) handle(name string, method string, handleFunc HandlerF
 	if ok {
 		panic("相同路由下不能有相同请求")
 	}
-	group.handleMap[name][method] = handleFunc
+	group.handleMap[name][method] = handlerFunc
 	group.handleMapMethod[method] = append(group.handleMapMethod[method], name)
 	//前面是静态路由的请求方式 ，下面是动态路由的方式
 	group.treeNode.Put(name)
 }
 
-func (group *routerGroup) Any(name string, handleFunc HandlerFunc) {
-	group.handle(name, ANY, handleFunc)
+func (group *routerGroup) Any(name string, handlerFunc HandlerFunc) {
+	group.handle(name, ANY, handlerFunc)
 }
-func (group *routerGroup) Get(name string, handleFunc HandlerFunc) {
-	group.handle(name, http.MethodGet, handleFunc)
+func (group *routerGroup) Get(name string, handlerFunc HandlerFunc) {
+	group.handle(name, http.MethodGet, handlerFunc)
 }
-func (group *routerGroup) Post(name string, handleFunc HandlerFunc) {
-	group.handle(name, http.MethodPost, handleFunc)
+func (group *routerGroup) Post(name string, handlerFunc HandlerFunc) {
+	group.handle(name, http.MethodPost, handlerFunc)
+}
+func (group *routerGroup) Delete(name string, handlerFunc HandlerFunc) {
+	group.handle(name, http.MethodDelete, handlerFunc)
+}
+func (group *routerGroup) Put(name string, handlerFunc HandlerFunc) {
+	group.handle(name, http.MethodPut, handlerFunc)
+}
+func (group *routerGroup) Patch(name string, handlerFunc HandlerFunc) {
+	group.handle(name, http.MethodPatch, handlerFunc)
 }
 
 type HandlerFunc func(ctx *Context)
@@ -73,7 +82,7 @@ func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		///再遍历分组路由下的路由集合
 		routerName := SubStringLast(request.RequestURI, "/"+group.name)
 		node := group.treeNode.Get(routerName)
-		if node != nil {
+		if node != nil && len(node.childrens) == 0 {
 			c := &Context{
 				W: writer,
 				R: request,

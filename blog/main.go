@@ -7,14 +7,16 @@ import (
 
 func main() {
 	engine := gofaster.New()
-	g := engine.Group("hello")
-	g.Any("/hello", func(ctx *gofaster.Context) {
-		fmt.Fprint(ctx.W, "any hello")
-
-	})
-	g.Get("/hello", func(ctx *gofaster.Context) {
+	g := engine.Group("user")
+	//g.Any("/hello", func(ctx *gofaster.Context) {
+	//	fmt.Fprint(ctx.W, "any hello")
+	//
+	//})
+	//g.Get("/hello", func(ctx *gofaster.Context) {
+	//	fmt.Fprint(ctx.W, "get any hello")
+	//})
+	g.Get("/hello/user", func(ctx *gofaster.Context) {
 		fmt.Fprint(ctx.W, "get any hello")
-
 	})
 	g.Get("/get", func(ctx *gofaster.Context) {
 		fmt.Fprint(ctx.W, "get hello")
