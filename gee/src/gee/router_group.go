@@ -24,10 +24,10 @@ func (g *RouterGroup) addRoute(method, comp string, handle HandleFunc) {
 	log.Printf("Route %4s - %s ", method, pattern)
 	g.engine.router.addRoute(method, pattern, handle)
 }
-func (g *RouterGroup) Get(pattern string, handle HandleFunc) {
+func (g *RouterGroup) GET(pattern string, handle HandleFunc) {
 	g.addRoute("GET", pattern, handle)
 }
-func (g *RouterGroup) Post(pattern string, handle HandleFunc) {
+func (g *RouterGroup) POST(pattern string, handle HandleFunc) {
 	g.addRoute("GET", pattern, handle)
 }
 

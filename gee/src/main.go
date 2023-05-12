@@ -19,20 +19,15 @@ func onlyForV2() gee.HandleFunc {
 }
 
 func main() {
-	r := gee.New()
-	r.Use(gee.Logger()) // global midlleware
-	r.Get("/", func(c *gee.Context) {
-		c.Html(http.StatusOK, "<h1>Hello Gee</h1>")
+	r := gee.Default()
+	r.GET("/", func(c *gee.Context) {
+		c.String(http.StatusOK, "Hello Geektutu\n")
 	})
-
-	v2 := r.Group("/v2")
-	v2.Use(onlyForV2()) // v2 group middleware
-	{
-		v2.Get("/hello/:name", func(c *gee.Context) {
-			// expect /hello/geektutu
-			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
-		})
-	}
+	// index out of range for testing Recovery()
+	r.GET("/panic", func(c *gee.Context) {
+		names := []string{"geektutu"}
+		c.String(http.StatusOK, names[100])
+	})
 
 	r.Run(":9999")
 }

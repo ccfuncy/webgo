@@ -22,6 +22,12 @@ type Engine struct {
 	groups []*RouterGroup //管理所有分组
 }
 
+func Default() *Engine {
+	engine := New()
+	engine.Use(Logger(), Recovery())
+	return engine
+}
+
 func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var middlewares []HandleFunc
 	for _, group := range e.groups {
