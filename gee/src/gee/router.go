@@ -72,6 +72,7 @@ func (r *router) handle(ctx *Context) {
 	if n != nil {
 		key := ctx.Req.Method + "-" + n.pattern
 		ctx.Params = param
+
 		r.handlers[key](ctx)
 	} else {
 		ctx.Writer.WriteHeader(http.StatusNotFound)

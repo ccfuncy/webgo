@@ -5,13 +5,20 @@ import (
 )
 
 func New() *Engine {
-	return &Engine{router: newRouter()}
+	engine := &Engine{
+		router: newRouter(),
+	}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
 }
 
 type HandleFunc func(ctx *Context)
 
 type Engine struct {
+	*RouterGroup
 	router *router
+	groups []*RouterGroup //管理所有分组
 }
 
 func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -19,12 +26,6 @@ func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	e.router.handle(context)
 }
 
-func (e *Engine) Post(pattern string, handle HandleFunc) {
-	e.router.addRoute("POST", pattern, handle)
-}
-func (e *Engine) Get(pattern string, handle HandleFunc) {
-	e.router.addRoute("GET", pattern, handle)
-}
 func (e *Engine) Run(addr string) error {
 	return http.ListenAndServe(addr, e)
 }
