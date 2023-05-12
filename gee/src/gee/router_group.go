@@ -30,3 +30,7 @@ func (g *RouterGroup) Get(pattern string, handle HandleFunc) {
 func (g *RouterGroup) Post(pattern string, handle HandleFunc) {
 	g.addRoute("GET", pattern, handle)
 }
+
+func (g *RouterGroup) Use(middleware ...HandleFunc) {
+	g.middleware = append(g.middleware, middleware...)
+}
