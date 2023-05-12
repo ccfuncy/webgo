@@ -10,10 +10,10 @@ const ANY = "Any"
 
 // 分组路由
 type routerGroup struct {
-	handleMap       map[string]map[string]HandlerFunc //路由对应的函数 map["name"]["get"] func
-	handleMapMethod map[string][]string               //方法对应路由
-	name            string
-	treeNode        *treeNode //前缀树 动态路由 前缀树方式实现
+	handleMap map[string]map[string]HandlerFunc //路由对应的函数 map["name"]["get"] func
+	//handleMapMethod map[string][]string               //方法对应路由
+	name     string
+	treeNode *treeNode //前缀树 动态路由 前缀树方式实现
 }
 
 func (group *routerGroup) handle(name string, method string, handlerFunc HandlerFunc) {
@@ -26,7 +26,7 @@ func (group *routerGroup) handle(name string, method string, handlerFunc Handler
 		panic("相同路由下不能有相同请求")
 	}
 	group.handleMap[name][method] = handlerFunc
-	group.handleMapMethod[method] = append(group.handleMapMethod[method], name)
+	//group.handleMapMethod[method] = append(group.handleMapMethod[method], name)
 	//前面是静态路由的请求方式 ，下面是动态路由的方式
 	group.treeNode.Put(name)
 }
@@ -58,9 +58,9 @@ type router struct {
 
 func (r *router) Group(name string) *routerGroup {
 	group := &routerGroup{
-		handleMap:       make(map[string]map[string]HandlerFunc),
-		name:            name,
-		handleMapMethod: make(map[string][]string),
+		handleMap: make(map[string]map[string]HandlerFunc),
+		name:      name,
+		//handleMapMethod: make(map[string][]string),
 		treeNode: &treeNode{
 			name:      "/",
 			childrens: make([]*treeNode, 0),
