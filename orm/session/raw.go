@@ -12,7 +12,7 @@ type Session struct {
 	sqlVars []interface{}
 }
 
-func (s *Session) New(db *sql.DB) *Session {
+func New(db *sql.DB) *Session {
 	return &Session{db: db}
 }
 
@@ -41,4 +41,18 @@ func (s *Session) Exec() (sql.Result, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (s *Session) QueryRow() *sql.Row {
+	defer s.Clear()
+	log.Info(s.sql.String(), s.sqlVars)
+	return s.DB().QueryRow(s.sql.String(), s.sqlVars...)
+}
+
+func (s *Session) QueryRows() (result *sql.Rows, err error) {
+	defer s.Clear()
+	if result, err = s.DB().Query(s.sql.String(), s.sqlVars...); err != nil {
+		log.Error(err)
+	}
+	return
 }
