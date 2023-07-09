@@ -2,23 +2,31 @@ package main
 
 import (
 	"gee/gee"
+	"log"
 	"net/http"
+	"time"
 )
 
-func main() {
-	r := gee.New()
-	r.Get("/", func(c *gee.Context) {
-		c.Html(http.StatusOK, "<h1>Hello Gee</h1>")
-	})
-	r.Get("/hello", func(c *gee.Context) {
-		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
-	})
+func onlyForV2() gee.HandleFunc {
+	return func(c *gee.Context) {
+		// Start timer
+		t := time.Now()
+		// if a server error occurred
+		//c.Fail(500, "Internal Server Error")
+		// Calculate resolution time
+		log.Printf("[%d] %s in %v for group v2", c.StatusCode, c.Req.RequestURI, time.Since(t))
+	}
+}
 
-	r.Post("/login", func(c *gee.Context) {
-		c.Json(http.StatusOK, gee.H{
-			"username": c.PostForm("username"),
-			"password": c.PostForm("password"),
-		})
+func main() {
+	r := gee.Default()
+	r.GET("/", func(c *gee.Context) {
+		c.String(http.StatusOK, "Hello Geektutu\n")
+	})
+	// index out of range for testing Recovery()
+	r.GET("/panic", func(c *gee.Context) {
+		names := []string{"geektutu"}
+		c.String(http.StatusOK, names[100])
 	})
 
 	r.Run(":9999")
