@@ -47,5 +47,10 @@ func main() {
 		ctx.HTMLTemplate("login.html", "", "tpl/login.html", "tpl/header.html")
 		//print(err.Error())
 	})
+	engine.LoadTemplate("tpl/*.html")
+	g.Get("/template", func(ctx *gofaster.Context) {
+		ctx.Template("index.html", "")
+		//print(err.Error())
+	})
 	engine.Run()
 }
