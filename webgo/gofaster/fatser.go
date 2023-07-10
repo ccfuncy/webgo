@@ -6,39 +6,39 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sync"
 )
 
 type Engine struct {
 	router
 	funcMap    template.FuncMap
 	HTMLRender render.HTMLRender
+	pool       sync.Pool
 }
 
 // 实现该接口，将所有请求转交给他处理分发
 func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	method := request.Method
+	ctx := e.pool.Get().(*Context)
+	ctx.W = writer
+	ctx.R = request
 	//先遍历分组路由
 	for _, group := range e.routerGroups {
 		///再遍历分组路由下的路由集合
-		routerName := SubStringLast(request.RequestURI, "/"+group.name)
+		routerName := SubStringLast(request.URL.Path, "/"+group.name)
 		node := group.treeNode.Get(routerName)
 		if node != nil && len(node.childrens) == 0 {
-			c := &Context{
-				W: writer,
-				R: request,
-				e: e,
-			}
 			//支持任意请求
 			handle, ok := group.handleMap[node.routerName][ANY]
 			if ok {
-				group.methodHandle(handle, c)
+				group.methodHandle(handle, ctx)
 				//handle(c)
 				return
 			}
 
 			handle, ok = group.handleMap[node.routerName][method]
 			if ok {
-				group.methodHandle(handle, c)
+				group.methodHandle(handle, ctx)
 				return
 			}
 			writer.WriteHeader(http.StatusMethodNotAllowed)
@@ -46,15 +46,24 @@ func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
+	e.pool.Put(ctx)
 	writer.WriteHeader(http.StatusNotFound)
 	fmt.Fprintf(writer, "%s %s not found \n", request.RequestURI, method)
 	return
 }
 
 func New() *Engine {
-	return &Engine{router: router{}}
+	engine := &Engine{router: router{}}
+	engine.pool.New = func() any {
+		return engine.allocateContext()
+	}
+	return engine
 }
-
+func (e *Engine) allocateContext() any {
+	return &Context{
+		e: e,
+	}
+}
 func (e *Engine) Run() {
 	//for _, group := range e.routerGroups {
 	//	for s, handlerFunc := range group.handleMap {
