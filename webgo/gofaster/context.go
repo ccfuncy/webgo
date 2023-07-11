@@ -1,8 +1,8 @@
 package gofaster
 
 import (
-	"encoding/json"
 	"errors"
+	"gofaster/binding"
 	"gofaster/render"
 	"io"
 	"log"
@@ -21,6 +21,7 @@ type Context struct {
 	queryCache            url.Values
 	formCache             url.Values
 	DisallowUnknownFields bool
+	IsValidate            bool
 	e                     *Engine
 }
 
@@ -182,17 +183,21 @@ func (c *Context) Render(status int, r render.Render) error {
 	return r.Render(c.W)
 }
 
-func (c *Context) DealJson(obj any) error {
-	//post请求放在body里
-	body := c.R.Body
-	if body != nil {
-		return errors.New("invalid require")
+func (c *Context) bindXML(obj any) error {
+	return c.MustBindWith(obj, binding.XML)
+}
+
+func (c *Context) bindJson(obj any) error {
+	json := binding.JSON
+	json.DisallowUnknownFields = true
+	json.IsValidate = true
+	return c.MustBindWith(obj, json)
+}
+
+func (c *Context) MustBindWith(obj any, bind binding.Binding) error {
+	if err := bind.Bind(c.R, obj); err != nil {
+		c.W.WriteHeader(http.StatusBadRequest)
+		return err
 	}
-	decoder := json.NewDecoder(body)
-	//未知字段则报错
-	if c.DisallowUnknownFields {
-		decoder.DisallowUnknownFields()
-	}
-	err := decoder.Decode(obj)
-	return err
+	return nil
 }
