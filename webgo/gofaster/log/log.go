@@ -113,8 +113,8 @@ func (l *Logger) Print(level LoggerLevel, msg any) {
 			if out.level == -1 || out.level == level {
 				fmt.Fprint(out.out, l.Formatter.Format(&parameter))
 			}
+			l.checkOutSize(out)
 		}
-		l.checkOutSize(out)
 	}
 }
 

@@ -9,3 +9,21 @@
 {"log_level":"ERROR","log_time":"2023/07/13 - 18:26:07","msg":"123"}
 {"log_level":"ERROR","log_time":"2023/07/13 - 18:26:07","msg":"123"}
 {"log_level":"ERROR","log_time":"2023/07/13 - 18:26:08","msg":"123"}
+[gofaster] 2023/07/13 - 20:57:39 | level=ERROR | msg="123"  
+[gofaster] 2023/07/13 - 21:07:05 | level=ERROR | msg="invalid memory address or nil pointer dereference"  
+[gofaster] 2023/07/13 - 21:35:37 | level=ERROR | msg="runtime error: invalid memory address or nil pointer dereference\n\n\tD:/go/go1.20.3/src/runtime/panic.go:884\n\tD:/go/go1.20.3/src/runtime/signal_windows.go:275\n\tD:/go/go1.20.3/src/runtime/panic.go:259\n\tD:/project/go/webgo/webgo/blog/main.go:36\n\tD:/project/go/webgo/webgo/gofaster/log.go:111\n\tD:/project/go/webgo/webgo/gofaster/recovery.go:33\n\tD:/project/go/webgo/webgo/blog/main.go:30\n\tD:/project/go/webgo/webgo/gofaster/router.go:82\n\tD:/project/go/webgo/webgo/gofaster/fatser.go:44\n\tD:/go/go1.20.3/src/net/http/server.go:2501\n\tD:/go/go1.20.3/src/net/http/server.go:2937\n\tD:/go/go1.20.3/src/net/http/server.go:1996\n\tD:/go/go1.20.3/src/runtime/asm_amd64.s:1599"  
+[gofaster] 2023/07/13 - 21:36:53 | level=ERROR | msg=runtime error: invalid memory address or nil pointer dereference
+
+	D:/go/go1.20.3/src/runtime/panic.go:884
+	D:/go/go1.20.3/src/runtime/signal_windows.go:275
+	D:/go/go1.20.3/src/runtime/panic.go:259
+	D:/project/go/webgo/webgo/blog/main.go:36
+	D:/project/go/webgo/webgo/gofaster/log.go:111
+	D:/project/go/webgo/webgo/gofaster/recovery.go:33
+	D:/project/go/webgo/webgo/blog/main.go:30
+	D:/project/go/webgo/webgo/gofaster/router.go:82
+	D:/project/go/webgo/webgo/gofaster/fatser.go:44
+	D:/go/go1.20.3/src/net/http/server.go:2501
+	D:/go/go1.20.3/src/net/http/server.go:2937
+	D:/go/go1.20.3/src/net/http/server.go:1996
+	D:/go/go1.20.3/src/runtime/asm_amd64.s:1599  

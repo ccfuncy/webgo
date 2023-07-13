@@ -2,6 +2,7 @@ package gofaster
 
 import (
 	"fmt"
+	fslog "gofaster/log"
 	"gofaster/render"
 	"html/template"
 	"log"
@@ -14,6 +15,7 @@ type Engine struct {
 	funcMap    template.FuncMap
 	HTMLRender render.HTMLRender
 	pool       sync.Pool
+	Logger     *fslog.Logger
 }
 
 // 实现该接口，将所有请求转交给他处理分发
@@ -59,9 +61,14 @@ func New() *Engine {
 	}
 	return engine
 }
+func Default() *Engine {
+	engine := New()
+	engine.Logger = fslog.Default()
+	return engine
+}
 func (e *Engine) allocateContext() any {
 	return &Context{
-		e: e,
+		E: e,
 	}
 }
 func (e *Engine) Run() {

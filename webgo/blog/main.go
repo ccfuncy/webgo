@@ -7,10 +7,14 @@ import (
 	"net/http"
 )
 
+type Test struct {
+	id int
+}
+
 func main() {
-	engine := gofaster.New()
+	engine := gofaster.Default()
 	g := engine.Group("user")
-	g.Use(gofaster.Logging)
+	g.Use(gofaster.Logging, gofaster.Recovery)
 	//g.Any("/hello", func(ctx *gofaster.Context) {
 	//	fmt.Fprint(ctx.W, "any hello")
 	//
@@ -25,11 +29,13 @@ func main() {
 			//fmt.Println("post handler")
 		}
 	})
+	var t *Test
 	g.Get("/hello/user", func(ctx *gofaster.Context) {
-		logger := log.Default()
+		logger := ctx.E.Logger
 		logger.SetPath("./log")
+		t.id = 2
 		logger.LogFileSize = 1 << 10 //1k
-		logger.Formatter = log.JsonFormatter{}
+		//logger.Formatter = log.JsonFormatter{}
 		logger.Info("12")
 		logger.Error("123")
 		logger.WithFields(log.Fields{"name": "ccfuncy", "id": 2}).Debug("321")

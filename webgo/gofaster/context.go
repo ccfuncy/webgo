@@ -22,7 +22,7 @@ type Context struct {
 	formCache             url.Values
 	DisallowUnknownFields bool
 	IsValidate            bool
-	e                     *Engine
+	E                     *Engine
 	StatusCode            int
 }
 
@@ -128,7 +128,7 @@ func (c *Context) Template(name string, data any) error {
 	return c.Render(http.StatusOK, &render.HTML{
 		Data:       data,
 		Name:       name,
-		Template:   c.e.HTMLRender.Template,
+		Template:   c.E.HTMLRender.Template,
 		IsTemplate: true,
 	})
 }
@@ -179,9 +179,7 @@ func (c *Context) String(status int, format string, values ...any) error {
 
 func (c *Context) Render(status int, r render.Render) error {
 	c.StatusCode = status
-	if status != http.StatusOK {
-		c.W.WriteHeader(status)
-	}
+	c.W.WriteHeader(status)
 	return r.Render(c.W)
 }
 
@@ -202,4 +200,8 @@ func (c *Context) MustBindWith(obj any, bind binding.Binding) error {
 		return err
 	}
 	return nil
+}
+
+func (c *Context) Fail(serverError int, s string) {
+	c.String(serverError, s)
 }

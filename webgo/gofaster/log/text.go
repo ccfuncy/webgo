@@ -25,12 +25,12 @@ func (l *TextFormatter) Format(parameter *LoggerParameter) string {
 	if parameter.IsColor {
 		msgColor := l.MsgColor(parameter.level)
 		levelColor := l.LevelColor(parameter.level)
-		return fmt.Sprintf("[gofaster] %v | level=%s %s %s| msg=%s %#v %s %s \n",
+		return fmt.Sprintf("[gofaster] %v | level=%s %s %s| msg=%s %v %s %s \n",
 			time.Now().Format("2006/01/02 - 15:04:05"),
 			levelColor, parameter.level.Level(), reset,
 			msgColor, parameter.Msg, reset, fields.String())
 	}
-	return fmt.Sprintf("[gofaster] %v | level=%s | msg=%#v %s \n",
+	return fmt.Sprintf("[gofaster] %v | level=%s | msg=%v %s \n",
 		time.Now().Format("2006/01/02 - 15:04:05"),
 		parameter.level.Level(),
 		parameter.Msg,
