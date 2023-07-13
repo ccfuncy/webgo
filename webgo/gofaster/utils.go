@@ -1,7 +1,6 @@
 package gofaster
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -11,7 +10,7 @@ func SubStringLast(path string, sep string) string {
 	if index == -1 {
 		return ""
 	}
-	fmt.Println(path[index+len(sep):])
+	//fmt.Println(path[index+len(sep):])
 	return path[index+len(sep):]
 }
 

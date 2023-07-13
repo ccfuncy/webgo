@@ -23,6 +23,7 @@ type Context struct {
 	DisallowUnknownFields bool
 	IsValidate            bool
 	e                     *Engine
+	StatusCode            int
 }
 
 func (c *Context) GetQuery(key string) string {
@@ -177,6 +178,7 @@ func (c *Context) String(status int, format string, values ...any) error {
 }
 
 func (c *Context) Render(status int, r render.Render) error {
+	c.StatusCode = status
 	if status != http.StatusOK {
 		c.W.WriteHeader(status)
 	}
