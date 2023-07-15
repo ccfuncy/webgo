@@ -35,3 +35,18 @@
 	D:/go/go1.20.3/src/net/http/server.go:2937
 	D:/go/go1.20.3/src/net/http/server.go:1996
 	D:/go/go1.20.3/src/runtime/asm_amd64.s:1599  
+[gofaster] 2023/07/14 - 14:23:27 | level=ERROR | msg=runtime error: invalid memory address or nil pointer dereference
+
+	D:/go/go1.20.3/src/runtime/panic.go:884
+	D:/go/go1.20.3/src/runtime/signal_windows.go:275
+	D:/go/go1.20.3/src/runtime/panic.go:259
+	D:/project/go/webgo/webgo/blog/main.go:42
+	D:/project/go/webgo/webgo/gofaster/log.go:111
+	D:/project/go/webgo/webgo/gofaster/recovery.go:43
+	D:/project/go/webgo/webgo/blog/main.go:30
+	D:/project/go/webgo/webgo/gofaster/router.go:82
+	D:/project/go/webgo/webgo/gofaster/fatser.go:44
+	D:/go/go1.20.3/src/net/http/server.go:2501
+	D:/go/go1.20.3/src/net/http/server.go:2937
+	D:/go/go1.20.3/src/net/http/server.go:1996
+	D:/go/go1.20.3/src/runtime/asm_amd64.s:1599  

@@ -1,7 +1,9 @@
 package gofaster
 
 import (
+	"errors"
 	"fmt"
+	"gofaster/fserror"
 	"net/http"
 	"runtime"
 	"strings"
@@ -24,6 +26,14 @@ func Recovery(next HandlerFunc) HandlerFunc {
 	return func(ctx *Context) {
 		defer func() {
 			if err := recover(); err != nil {
+				err2 := err.(error)
+				if err2 != nil {
+					var fsError *fserror.FsError
+					if errors.As(err2, &fsError) {
+						fsError.ExecResult()
+						return
+					}
+				}
 				ctx.E.Logger.Error(detailMsg(err))
 				ctx.Fail(http.StatusInternalServerError, "Internal Server Error!")
 			}

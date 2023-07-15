@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"gofaster"
+	"gofaster/fspool"
 	"gofaster/log"
 	"net/http"
+	"sync"
+	"time"
 )
 
 type Test struct {
@@ -32,6 +35,12 @@ func main() {
 	var t *Test
 	g.Get("/hello/user", func(ctx *gofaster.Context) {
 		logger := ctx.E.Logger
+		//err := fserror.Default()
+		//err.Result(func(fsError *fserror.FsError) {
+		//	logger.Error(fsError.Error())
+		//})
+		//err.Put(errors.New("hello"))
+
 		logger.SetPath("./log")
 		t.id = 2
 		logger.LogFileSize = 1 << 10 //1k
@@ -66,6 +75,40 @@ func main() {
 	g.Get("/template", func(ctx *gofaster.Context) {
 		ctx.Template("index.html", "")
 		//print(err.Error())
+	})
+	pool, _ := fspool.NewPool(1000)
+	g.Get("/pool", func(ctx *gofaster.Context) {
+		var wg sync.WaitGroup
+		now := time.Now()
+		wg.Add(5)
+		pool.Submit(func() {
+			fmt.Println("111111")
+			time.Sleep(5 * time.Second)
+			wg.Done()
+		})
+		pool.Submit(func() {
+			fmt.Println("222222")
+			time.Sleep(6 * time.Second)
+			wg.Done()
+		})
+		pool.Submit(func() {
+			fmt.Println("3333333")
+			time.Sleep(7 * time.Second)
+			wg.Done()
+		})
+		pool.Submit(func() {
+			fmt.Println("4444444")
+			time.Sleep(8 * time.Second)
+			wg.Done()
+		})
+		pool.Submit(func() {
+			fmt.Println("555555")
+			time.Sleep(9 * time.Second)
+			wg.Done()
+		})
+		wg.Wait()
+		fmt.Println(time.Now().Sub(now).Truncate(time.Second))
+		ctx.JSON(http.StatusOK, "success")
 	})
 	engine.Run()
 }
