@@ -83,27 +83,27 @@ func main() {
 		wg.Add(5)
 		pool.Submit(func() {
 			fmt.Println("111111")
-			time.Sleep(5 * time.Second)
+			time.Sleep(3 * time.Second)
 			wg.Done()
 		})
 		pool.Submit(func() {
 			fmt.Println("222222")
-			time.Sleep(6 * time.Second)
+			time.Sleep(3 * time.Second)
 			wg.Done()
 		})
 		pool.Submit(func() {
 			fmt.Println("3333333")
-			time.Sleep(7 * time.Second)
+			time.Sleep(3 * time.Second)
 			wg.Done()
 		})
 		pool.Submit(func() {
 			fmt.Println("4444444")
-			time.Sleep(8 * time.Second)
+			time.Sleep(3 * time.Second)
 			wg.Done()
 		})
 		pool.Submit(func() {
 			fmt.Println("555555")
-			time.Sleep(9 * time.Second)
+			time.Sleep(3 * time.Second)
 			wg.Done()
 		})
 		wg.Wait()

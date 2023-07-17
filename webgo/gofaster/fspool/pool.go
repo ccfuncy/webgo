@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const DefaultExpire = 3
+const DefaultExpire = 1
 
 type sig struct {
 }
@@ -28,6 +28,12 @@ type Pool struct {
 	lock sync.Mutex
 	//释放只能调用一次
 	once sync.Once
+	//workers缓存
+	workerCache sync.Pool
+	//cond
+	cond *sync.Cond
+	//错误处理
+	panicHandler func()
 }
 
 func NewTimePool(cap int32, expire int) (*Pool, error) {
@@ -40,6 +46,13 @@ func NewTimePool(cap int32, expire int) (*Pool, error) {
 	p := &Pool{cap: cap,
 		expire:  time.Duration(expire) * time.Second,
 		release: make(chan sig, 1)}
+	p.workerCache.New = func() any {
+		return &Worker{
+			pool: p,
+			task: make(chan func()),
+		}
+	}
+	p.cond = sync.NewCond(&p.lock)
 	go p.expireWorker()
 	return p, nil
 }
@@ -62,10 +75,10 @@ func (p *Pool) Submit(task func()) error {
 func (p *Pool) GetWorker() *Worker {
 	// 获取pool中的worker
 	// 如果有空闲Worker 直接获取
+	p.lock.Lock()
 	idleWorkers := p.workers
 	n := len(idleWorkers) - 1
 	if n >= 0 {
-		p.lock.Lock()
 		w := idleWorkers[n]
 		idleWorkers[n] = nil
 		p.workers = idleWorkers[:n]
@@ -74,26 +87,21 @@ func (p *Pool) GetWorker() *Worker {
 	}
 	// 如果没有空闲的worker,要新建一个worker
 	if p.running < p.cap {
+		p.lock.Unlock()
 		//还不够pool的容量，直接新建一个
-		w := &Worker{pool: p, task: make(chan func(), 1)}
+		c := p.workerCache.Get()
+		var w *Worker
+		if c == nil {
+			w = &Worker{pool: p, task: make(chan func(), 1)}
+		} else {
+			w = c.(*Worker)
+		}
 		w.run()
 		return w
 	}
+	p.lock.Unlock()
 	// 如果正在运行的workers 如果大于cap 阻塞等待，worker释放
-	for {
-		p.lock.Lock()
-		idleWorkers := p.workers
-		n := len(idleWorkers) - 1
-		if n < 0 {
-			p.lock.Unlock()
-			continue
-		}
-		w := idleWorkers[n]
-		idleWorkers[n] = nil
-		p.workers = idleWorkers[:n]
-		p.lock.Unlock()
-		return w
-	}
+	return p.waitIdleWorker()
 }
 
 func (p *Pool) incRunning() {
@@ -104,6 +112,7 @@ func (p *Pool) PutWorker(w *Worker) {
 	//now := time.Now()
 	p.lock.Lock()
 	p.workers = append(p.workers, w)
+	p.cond.Signal()
 	p.lock.Unlock()
 }
 
@@ -165,4 +174,20 @@ func (p *Pool) expireWorker() {
 		fmt.Printf("清除成功，running:%d\n", p.running)
 		p.lock.Unlock()
 	}
+}
+
+func (p *Pool) waitIdleWorker() *Worker {
+	p.lock.Lock()
+	p.cond.Wait()
+	idleWorkers := p.workers
+	n := len(idleWorkers) - 1
+	if n < 0 {
+		p.lock.Unlock()
+		return p.waitIdleWorker()
+	}
+	w := idleWorkers[n]
+	idleWorkers[n] = nil
+	p.workers = idleWorkers[:n]
+	p.lock.Unlock()
+	return w
 }
