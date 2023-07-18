@@ -1,0 +1,6 @@
+[log]
+path="./log"
+[pool]
+cap=10
+[template]
+pattern="./tpl/*.html"

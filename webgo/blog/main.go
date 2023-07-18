@@ -5,6 +5,7 @@ import (
 	"gofaster"
 	"gofaster/fspool"
 	"gofaster/log"
+	"gofaster/token"
 	"net/http"
 	"sync"
 	"time"
@@ -17,7 +18,8 @@ type Test struct {
 func main() {
 	engine := gofaster.Default()
 	g := engine.Group("user")
-	g.Use(gofaster.Logging, gofaster.Recovery)
+	jwtHandler := token.JwtHandler{Key: []byte("123456")}
+	g.Use(gofaster.Logging, gofaster.Recovery, jwtHandler.AuthInterceptor)
 	//g.Any("/hello", func(ctx *gofaster.Context) {
 	//	fmt.Fprint(ctx.W, "any hello")
 	//
@@ -109,6 +111,40 @@ func main() {
 		wg.Wait()
 		fmt.Println(time.Now().Sub(now).Truncate(time.Second))
 		ctx.JSON(http.StatusOK, "success")
+	})
+	g.Get("/login", func(ctx *gofaster.Context) {
+		jwt := token.JwtHandler{}
+		jwt.Key = []byte("123456")
+		jwt.SendCookie = true
+		jwt.TimeOut = time.Minute * 10
+		jwt.Authenticator = func(ctx *gofaster.Context) (map[string]any, error) {
+			m := make(map[string]any)
+			m["user"] = 1
+			return m, nil
+		}
+		jwtResponse, err := jwt.LoginHandler(ctx)
+		if err != nil {
+			ctx.E.Logger.Error(err)
+			ctx.JSON(http.StatusOK, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, jwtResponse)
+	})
+	g.Get("/refresh", func(ctx *gofaster.Context) {
+		jwt := token.JwtHandler{}
+		jwt.Key = []byte("123456")
+		jwt.SendCookie = true
+		jwt.TimeOut = time.Minute * 10
+		jwt.RefreshTimeOut = time.Minute * 20
+		jwt.RefreshKey = "blog_refresh_token"
+		ctx.Set(jwt.RefreshKey, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODk2NjQ5NjAsImlhdCI6MTY4OTY2NDM2MCwidXNlciI6MX0.1n4zDi2b8ocAVtFcdVitdEOqFFGGOvCZE1rrRegrClk")
+		jwtResponse, err := jwt.RefreshHandler(ctx)
+		if err != nil {
+			ctx.E.Logger.Error(err)
+			ctx.JSON(http.StatusOK, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, jwtResponse)
 	})
 	engine.Run()
 }

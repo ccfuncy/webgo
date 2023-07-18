@@ -2,6 +2,7 @@ package gofaster
 
 import (
 	"fmt"
+	"gofaster/config"
 	fslog "gofaster/log"
 	"gofaster/render"
 	"html/template"
@@ -64,6 +65,10 @@ func New() *Engine {
 func Default() *Engine {
 	engine := New()
 	engine.Logger = fslog.Default()
+	path, ok := config.Conf.Log["path"]
+	if ok {
+		engine.Logger.SetPath(path.(string))
+	}
 	return engine
 }
 func (e *Engine) allocateContext() any {
@@ -83,6 +88,12 @@ func (e *Engine) Run() {
 		log.Fatal(err)
 	}
 }
+func (e *Engine) RunTLS(addr, certFile, keyFile string) {
+	err := http.ListenAndServeTLS(addr, certFile, keyFile, e.Handler())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
 	e.funcMap = funcMap
@@ -90,4 +101,17 @@ func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
 func (e *Engine) LoadTemplate(pattern string) {
 	t := template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern))
 	e.HTMLRender = render.HTMLRender{Template: t}
+}
+
+func (e *Engine) LoadTemplateConfig() {
+	pattern, ok := config.Conf.Template["pattern"]
+	if !ok {
+		e.Logger.Error("config not exist template.pattern field!")
+	}
+	t := template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern.(string)))
+	e.HTMLRender = render.HTMLRender{Template: t}
+}
+
+func (e *Engine) Handler() http.Handler {
+	return e
 }

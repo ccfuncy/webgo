@@ -2,7 +2,7 @@ package fspool
 
 import (
 	"errors"
-	"fmt"
+	"gofaster/config"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -59,6 +59,14 @@ func NewTimePool(cap int32, expire int) (*Pool, error) {
 
 func NewPool(cap int32) (*Pool, error) {
 	return NewTimePool(cap, DefaultExpire)
+}
+
+func NewPoolConf() (*Pool, error) {
+	cap, ok := config.Conf.Pool["cap"]
+	if !ok {
+		return nil, errors.New("cap config not exist")
+	}
+	return NewTimePool(cap.(int32), DefaultExpire)
 }
 
 func (p *Pool) Submit(task func()) error {
@@ -171,7 +179,7 @@ func (p *Pool) expireWorker() {
 		} else {
 			p.workers = p.workers[n+1:]
 		}
-		fmt.Printf("清除成功，running:%d\n", p.running)
+		//fmt.Printf("清除成功，running:%d\n", p.running)
 		p.lock.Unlock()
 	}
 }

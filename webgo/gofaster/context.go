@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 )
 
 const defaultMaxMemory = 32 << 20 //32M
@@ -24,6 +25,33 @@ type Context struct {
 	IsValidate            bool
 	E                     *Engine
 	StatusCode            int
+	keys                  map[string]any
+	mu                    sync.RWMutex
+	sameSite              http.SameSite
+}
+
+func (c *Context) SetSameSite(site http.SameSite) {
+	c.sameSite = site
+}
+
+func (c *Context) Set(key string, value any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.keys == nil {
+		c.keys = make(map[string]any)
+	}
+	c.keys[key] = value
+}
+func (c *Context) Get(key string) (any, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	v, ok := c.keys[key]
+	return v, ok
+
+}
+
+func (c *Context) SetBasicAuth(username, passwd string) {
+	c.R.Header.Set("Authentication", "Basic "+BasicAuth(username, passwd))
 }
 
 func (c *Context) GetQuery(key string) string {
@@ -204,4 +232,20 @@ func (c *Context) MustBindWith(obj any, bind binding.Binding) error {
 
 func (c *Context) Fail(serverError int, s string) {
 	c.String(serverError, s)
+}
+
+func (c *Context) SetCookie(name string, signedString string, age int64, path string, domain string, cookie bool, only bool) {
+	if path == "" {
+		path = "/"
+	}
+	http.SetCookie(c.W, &http.Cookie{
+		Name:     name,
+		Value:    signedString,
+		Path:     path,
+		Domain:   domain,
+		MaxAge:   int(age),
+		Secure:   cookie,
+		HttpOnly: only,
+		SameSite: c.sameSite,
+	})
 }
