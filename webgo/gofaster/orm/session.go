@@ -164,7 +164,7 @@ func (s *FsSession) Update(data ...any) (int64, int64, error) {
 			s.values = append(s.values, vVar.Field(i).Interface())
 		}
 	}
-	query := fmt.Sprintf("update %s set %s", s.tableName, s.updateParams)
+	query := fmt.Sprintf("update %s set %s", s.tableName, s.updateParams.String())
 	var sb strings.Builder
 	sb.WriteString(query)
 	sb.WriteString(s.whereParams.String())

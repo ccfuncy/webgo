@@ -11,6 +11,7 @@ type XML struct {
 
 func (x *XML) Render(w http.ResponseWriter) error {
 	x.WriteContentType(w)
+	//w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	//xmlData, err := xml.Marshal(data)
 	//if err != nil {
 	//	return err

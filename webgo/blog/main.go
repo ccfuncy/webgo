@@ -18,8 +18,8 @@ type Test struct {
 func main() {
 	engine := gofaster.Default()
 	g := engine.Group("user")
-	jwtHandler := token.JwtHandler{Key: []byte("123456")}
-	g.Use(gofaster.Logging, gofaster.Recovery, jwtHandler.AuthInterceptor)
+	//jwtHandler := token.JwtHandler{Key: []byte("123456")}
+	g.Use(gofaster.Logging, gofaster.Recovery)
 	//g.Any("/hello", func(ctx *gofaster.Context) {
 	//	fmt.Fprint(ctx.W, "any hello")
 	//
@@ -68,6 +68,17 @@ func main() {
 
 	g.Get("/html", func(ctx *gofaster.Context) {
 		ctx.HTML(http.StatusOK, "<h1>Hello</h1>")
+	})
+	g.Get("/json", func(ctx *gofaster.Context) {
+		type User struct {
+			Id   int64
+			Name string
+		}
+		model := User{
+			Id:   12,
+			Name: "12",
+		}
+		ctx.JSON(http.StatusCreated, &model)
 	})
 	g.Get("/htmlTemplate", func(ctx *gofaster.Context) {
 		ctx.Template("login.html", "")
@@ -146,5 +157,5 @@ func main() {
 		}
 		ctx.JSON(http.StatusOK, jwtResponse)
 	})
-	engine.Run()
+	engine.Run(":9001")
 }

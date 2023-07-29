@@ -207,6 +207,7 @@ func (c *Context) String(status int, format string, values ...any) error {
 
 func (c *Context) Render(status int, r render.Render) error {
 	c.StatusCode = status
+	r.WriteContentType(c.W)
 	c.W.WriteHeader(status)
 	return r.Render(c.W)
 }
