@@ -3,6 +3,7 @@ package gofaster
 import (
 	"fmt"
 	"gofaster/config"
+	"gofaster/gateway"
 	fslog "gofaster/log"
 	"gofaster/render"
 	"html/template"
@@ -13,10 +14,12 @@ import (
 
 type Engine struct {
 	router
-	funcMap    template.FuncMap
-	HTMLRender render.HTMLRender
-	pool       sync.Pool
-	Logger     *fslog.Logger
+	funcMap        template.FuncMap
+	HTMLRender     render.HTMLRender
+	pool           sync.Pool
+	Logger         *fslog.Logger
+	OpenGateway    bool
+	gatewayConfigs []gateway.GWConfig
 }
 
 // 实现该接口，将所有请求转交给他处理分发
@@ -71,6 +74,11 @@ func Default() *Engine {
 	}
 	return engine
 }
+
+func (e *Engine) SetGatewayConfig(config []gateway.GWConfig) {
+	e.gatewayConfigs = config
+}
+
 func (e *Engine) allocateContext() any {
 	return &Context{
 		E: e,
