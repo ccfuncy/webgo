@@ -43,10 +43,10 @@ func main() {
 		//})
 		//err.Put(errors.New("hello"))
 
-		logger.SetPath("./log")
+		logger.SetPath("./logger")
 		t.id = 2
 		logger.LogFileSize = 1 << 10 //1k
-		//logger.Formatter = log.JsonFormatter{}
+		//logger.Formatter = logger.JsonFormatter{}
 		logger.Info("12")
 		logger.Error("123")
 		logger.WithFields(log.Fields{"name": "ccfuncy", "id": 2}).Debug("321")

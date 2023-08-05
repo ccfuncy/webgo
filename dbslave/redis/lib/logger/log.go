@@ -1,8 +1,7 @@
-package log
+package logger
 
 import (
 	"fmt"
-	"gofaster/internal/fsstrings"
 	"io"
 	"log"
 	"os"
@@ -56,8 +55,7 @@ type LoggerWriter struct {
 	level LoggerLevel
 }
 type Logger struct {
-	Formatter LoggerFormatter
-	//Level        LoggerLevel
+	Formatter    LoggerFormatter
 	Outs         []*LoggerWriter
 	LoggerFields Fields
 	LogPath      string
@@ -67,19 +65,19 @@ type Logger struct {
 func (l *Logger) SetPath(logPath string) {
 	l.LogPath = logPath
 	l.Outs = append(l.Outs, &LoggerWriter{
-		out:   FileWriter(path.Join(logPath, "all.logger")),
+		out:   FileWriter(path.Join(logPath, "all.log")),
 		level: -1,
 	})
 	l.Outs = append(l.Outs, &LoggerWriter{
-		out:   FileWriter(path.Join(logPath, "info.logger")),
+		out:   FileWriter(path.Join(logPath, "info.log")),
 		level: LevelInfo,
 	})
 	l.Outs = append(l.Outs, &LoggerWriter{
-		out:   FileWriter(path.Join(logPath, "error.logger")),
+		out:   FileWriter(path.Join(logPath, "error.log")),
 		level: LevelError,
 	})
 	l.Outs = append(l.Outs, &LoggerWriter{
-		out:   FileWriter(path.Join(logPath, "debug.logger")),
+		out:   FileWriter(path.Join(logPath, "debug.log")),
 		level: LevelDebug,
 	})
 }
@@ -133,7 +131,7 @@ func (l *Logger) checkOutSize(out *LoggerWriter) {
 		if size >= l.LogFileSize {
 			_, name := path.Split(stat.Name())
 			fileName := name[:strings.Index(name, ".")]
-			out.out = FileWriter(path.Join(l.LogPath, fsstrings.JoinStrings(fileName, ".", time.Now().UnixMilli(), ".logger")))
+			out.out = FileWriter(path.Join(l.LogPath, JoinStrings(fileName, ".", time.Now().UnixMilli(), ".log")))
 		}
 	}
 }
