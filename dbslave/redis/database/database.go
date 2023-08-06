@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"redis/aof"
 	"redis/interface/database"
 	"redis/interface/resp"
 	"redis/interface/utils"
@@ -13,7 +14,8 @@ import (
 )
 
 type DataBase struct {
-	dbSet []*DB
+	dbSet      []*DB
+	aofHandler *aof.AofHandler
 }
 
 func NewDataBase() *DataBase {
@@ -27,7 +29,22 @@ func NewDataBase() *DataBase {
 		dbs[i] = NewDB()
 		dbs[i].index = i
 	}
-	return &DataBase{dbSet: dbs}
+	d := &DataBase{dbSet: dbs}
+	if config.Conf.Redis["appendonly"].(bool) {
+		handler, err := aof.NewAofHandler(d)
+		if err != nil {
+			logger.Default().Error(err)
+			panic(err)
+		}
+		d.aofHandler = handler
+		for _, db := range dbs {
+			var i = db.index
+			db.AddAof = func(cmdline database.Cmdline) {
+				handler.AddAof(i, cmdline)
+			}
+		}
+	}
+	return d
 }
 
 func (d *DataBase) Exec(client resp.Connection, args database.Cmdline) resp.Reply {

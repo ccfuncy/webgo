@@ -25,6 +25,9 @@ func execDel(db *DB, args database.Cmdline) resp.Reply {
 		keys[i] = utils.BytesToString(arg)
 	}
 	removes := db.Removes(keys...)
+	if removes > 0 {
+		db.AddAof(utils.ToCmdLine2("del", args...))
+	}
 	return reply.NewIntReply(int64(removes))
 }
 
@@ -43,6 +46,7 @@ func execExist(db *DB, args database.Cmdline) resp.Reply {
 // FlushDB
 func execFlushDB(db *DB, args database.Cmdline) resp.Reply {
 	db.Flush()
+	db.AddAof(utils.ToCmdLine2("flushdb", args...))
 	return reply.NewOKReply()
 }
 
@@ -71,6 +75,7 @@ func execRename(db *DB, args database.Cmdline) resp.Reply {
 	}
 	db.PutEntity(dest, entity)
 	db.Remove(src)
+	db.AddAof(utils.ToCmdLine2("rename", args...))
 	return reply.NewOKReply()
 }
 
@@ -88,6 +93,7 @@ func execRenameNx(db *DB, args database.Cmdline) resp.Reply {
 	}
 	db.PutEntity(dest, entity)
 	db.Remove(src)
+	db.AddAof(utils.ToCmdLine2("renamenx", args...))
 	return reply.NewIntReply(1)
 }
 

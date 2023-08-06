@@ -14,13 +14,15 @@ import (
 type ExecFunc func(db *DB, cmdline database.Cmdline) resp.Reply
 
 type DB struct {
-	index int
-	data  dict.Dict
+	index  int
+	data   dict.Dict
+	AddAof func(database.Cmdline)
 }
 
 func NewDB() *DB {
 	return &DB{
-		data: dict.NewSyncDict(),
+		data:   dict.NewSyncDict(),
+		AddAof: func(cmdline database.Cmdline) {},
 	}
 }
 

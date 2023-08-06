@@ -32,6 +32,7 @@ func execSet(db *DB, args database.Cmdline) resp.Reply {
 	key := utils.BytesToString(args[0])
 	value := args[1]
 	db.PutEntity(key, &database.DataEntity{Data: value})
+	db.AddAof(utils.ToCmdLine2("set", args...))
 	return reply.NewOKReply()
 }
 
@@ -40,6 +41,7 @@ func execSetNx(db *DB, args database.Cmdline) resp.Reply {
 	key := utils.BytesToString(args[0])
 	value := args[1]
 	result := db.PutIfAbsent(key, &database.DataEntity{Data: value})
+	db.AddAof(utils.ToCmdLine2("setnx", args...))
 	return reply.NewIntReply(int64(result))
 }
 
@@ -52,6 +54,7 @@ func execGetSet(db *DB, args database.Cmdline) resp.Reply {
 	if !exist {
 		return reply.NewNULLBulkReply()
 	}
+	db.AddAof(utils.ToCmdLine2("getset", args...))
 	return reply.NewBulkReply(entity.Data.([]byte))
 }
 
