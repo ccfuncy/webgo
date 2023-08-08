@@ -4,3 +4,5 @@ port=6439
 databases=16
 appendonly=true
 appendonlyfilename="appendonly.aof"
+self="0.0.0.0:6440"
+peers="0.0.0.0:6441"

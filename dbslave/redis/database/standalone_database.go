@@ -13,12 +13,12 @@ import (
 	"strings"
 )
 
-type DataBase struct {
+type StandaloneDataBase struct {
 	dbSet      []*DB
 	aofHandler *aof.AofHandler
 }
 
-func NewDataBase() *DataBase {
+func NewStandaloneDataBase() *StandaloneDataBase {
 	dbNum := config.Conf.Redis["databases"].(int64)
 	if dbNum == 0 {
 		dbNum = 16
@@ -29,7 +29,7 @@ func NewDataBase() *DataBase {
 		dbs[i] = NewDB()
 		dbs[i].index = i
 	}
-	d := &DataBase{dbSet: dbs}
+	d := &StandaloneDataBase{dbSet: dbs}
 	if config.Conf.Redis["appendonly"].(bool) {
 		handler, err := aof.NewAofHandler(d)
 		if err != nil {
@@ -47,7 +47,7 @@ func NewDataBase() *DataBase {
 	return d
 }
 
-func (d *DataBase) Exec(client resp.Connection, args database.Cmdline) resp.Reply {
+func (d *StandaloneDataBase) Exec(client resp.Connection, args database.Cmdline) resp.Reply {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Default().Error(err)
@@ -66,14 +66,14 @@ func (d *DataBase) Exec(client resp.Connection, args database.Cmdline) resp.Repl
 	return db.Exec(client, args)
 }
 
-func (d *DataBase) Close() {
+func (d *StandaloneDataBase) Close() {
 }
 
-func (d *DataBase) AfterClose(client resp.Connection) {
+func (d *StandaloneDataBase) AfterClose(client resp.Connection) {
 }
 
 // select dbnum db相关命令交由executor 处理，select 与DB无关
-func execSelect(connection resp.Connection, database *DataBase, args database.Cmdline) resp.Reply {
+func execSelect(connection resp.Connection, database *StandaloneDataBase, args database.Cmdline) resp.Reply {
 	dbIndex, err := strconv.Atoi(utils.BytesToString(args[0]))
 	logger.Default().Info(fmt.Sprintf("client %s select db %d", connection.RemoteAddr().String(), dbIndex))
 	if err != nil {

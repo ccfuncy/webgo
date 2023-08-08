@@ -4,9 +4,11 @@ import (
 	"context"
 	"io"
 	"net"
+	"redis/cluster"
 	"redis/database"
 	databaseface "redis/interface/database"
 	"redis/interface/utils"
+	"redis/lib/config"
 	"redis/lib/logger"
 	"redis/lib/sync/atomic"
 	"redis/resp/connection"
@@ -25,8 +27,15 @@ type RespHandler struct {
 }
 
 func NewRespHandler() *RespHandler {
-	database := database.NewDataBase()
-	return &RespHandler{db: database}
+	var db databaseface.Database
+	if config.Conf.Redis["self"] != nil && config.Conf.Redis["peers"] == nil {
+		logger.Default().Info("standalone redis start")
+		db = database.NewStandaloneDataBase()
+	} else {
+		logger.Default().Info("cluster redis start")
+		db = cluster.NewClusterDatabase()
+	}
+	return &RespHandler{db: db}
 }
 
 func (r *RespHandler) closeClient(client *connection.Connection) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"redis/lib/config"
 	"redis/lib/logger"
 	"redis/resp/handler"
@@ -11,7 +10,7 @@ import (
 func main() {
 	conf := config.Conf
 	err := tcp.ListenAndServerWithSignal(&tcp.Config{
-		Address: fmt.Sprintf("%s:%d", conf.Redis["bind"], conf.Redis["port"])}, handler.NewRespHandler())
+		Address: conf.Redis["self"].(string)}, handler.NewRespHandler())
 	if err != nil {
 		logger.Default().Error(err)
 	}
